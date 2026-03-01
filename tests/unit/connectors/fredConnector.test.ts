@@ -1,4 +1,9 @@
-import { fetchYieldCurveData } from '../../../src/connectors/fred/fredConnector';
+import {
+  fetchYieldCurveData,
+  fetchCreditSpreadsData,
+  fetchUnemploymentData,
+  fetchPMIData,
+} from '../../../src/connectors/fred/fredConnector';
 import { fetchFredSeries } from '../../../src/connectors/fred/fredApiClient';
 
 jest.mock('../../../src/connectors/fred/fredApiClient');
@@ -88,5 +93,76 @@ describe('fetchYieldCurveData()', () => {
 
     await expect(fetchYieldCurveData()).rejects.toThrow('FRED_API_KEY environment variable is not set');
     expect(mockFetchFredSeries).not.toHaveBeenCalled();
+  });
+});
+
+// STORY-001b
+describe('fetchCreditSpreadsData()', () => {
+  it('fetches BAMLH0A0HYM2 as HY_CREDIT_SPREAD by default', async () => {
+    mockFetchFredSeries.mockResolvedValue({ observations: [] });
+    await fetchCreditSpreadsData();
+    expect(mockFetchFredSeries).toHaveBeenCalledWith('BAMLH0A0HYM2', 'test-api-key');
+  });
+
+  it('filters missing data days (weekends/holidays reported as ".")', async () => {
+    mockFetchFredSeries.mockResolvedValue({
+      observations: [
+        { realtime_start: '', realtime_end: '', date: '2024-01-05', value: '3.25' },
+        { realtime_start: '', realtime_end: '', date: '2024-01-06', value: '.' }, // weekend
+        { realtime_start: '', realtime_end: '', date: '2024-01-07', value: '.' }, // weekend
+        { realtime_start: '', realtime_end: '', date: '2024-01-08', value: '3.28' },
+      ],
+    });
+
+    const result = await fetchCreditSpreadsData();
+    expect(result).toHaveLength(2);
+    expect(result[0]).toEqual({ date: '2024-01-05', value: 3.25, indicatorType: 'HY_CREDIT_SPREAD' });
+  });
+});
+
+// STORY-001c
+describe('fetchUnemploymentData()', () => {
+  it('fetches UNRATE as UNEMPLOYMENT_U3 by default', async () => {
+    mockFetchFredSeries.mockResolvedValue({ observations: [] });
+    await fetchUnemploymentData();
+    expect(mockFetchFredSeries).toHaveBeenCalledWith('UNRATE', 'test-api-key');
+  });
+
+  it('normalizes monthly data points to the standard format', async () => {
+    mockFetchFredSeries.mockResolvedValue({
+      observations: [
+        { realtime_start: '', realtime_end: '', date: '2024-01-01', value: '3.7' },
+        { realtime_start: '', realtime_end: '', date: '2024-02-01', value: '3.9' },
+      ],
+    });
+
+    const result = await fetchUnemploymentData();
+    expect(result).toHaveLength(2);
+    expect(result[0]).toEqual({ date: '2024-01-01', value: 3.7, indicatorType: 'UNEMPLOYMENT_U3' });
+    expect(result[1]).toEqual({ date: '2024-02-01', value: 3.9, indicatorType: 'UNEMPLOYMENT_U3' });
+  });
+});
+
+// STORY-001d
+describe('fetchPMIData()', () => {
+  it('fetches NAPM as PMI_MANUFACTURING by default', async () => {
+    mockFetchFredSeries.mockResolvedValue({ observations: [] });
+    await fetchPMIData();
+    expect(mockFetchFredSeries).toHaveBeenCalledWith('NAPM', 'test-api-key');
+  });
+
+  it('normalizes monthly PMI data comparable against the 50.0 threshold', async () => {
+    mockFetchFredSeries.mockResolvedValue({
+      observations: [
+        { realtime_start: '', realtime_end: '', date: '2024-01-01', value: '49.1' }, // contraction
+        { realtime_start: '', realtime_end: '', date: '2024-02-01', value: '52.3' }, // expansion
+      ],
+    });
+
+    const result = await fetchPMIData();
+    expect(result).toHaveLength(2);
+    expect(result[0]).toEqual({ date: '2024-01-01', value: 49.1, indicatorType: 'PMI_MANUFACTURING' });
+    expect(result.find(r => r.value < 50.0)).toBeDefined(); // contraction reading present
+    expect(result.find(r => r.value > 50.0)).toBeDefined(); // expansion reading present
   });
 });
