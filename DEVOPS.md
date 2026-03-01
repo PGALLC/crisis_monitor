@@ -27,18 +27,21 @@ To ensure the chain of custody is cryptographically secure from **Commit Zero**,
   - Create a completely separate GitHub account named `C3P-Coder`.
   - From your Admin account, invite `C3P-Coder` as a Collaborator with "Write" access.
   - Log in as `C3P-Coder` and accept the invitation.
-- [ ] **Step 4: Generate Fine-Grained PATs**
-  - **Token 1 (The Coder):** Logged in as `C3P-Coder`, generate a token targeting `crisis_monitor`. Grant Read/Write to "Contents" and "Pull requests". Give this to Marvin.
+- [ ] **Step 4: Generate Personal Access Tokens (PATs)**
+  - **Token 1 (The Coder):** Logged in as `C3P-Coder`, go to Developer Settings > Personal access tokens > Tokens (classic). Create a **Classic PAT**. Check the `repo` and `read:org` scopes. Give this to Marvin.
+    - *Why a Classic PAT?* Fine-Grained PATs cannot access repositories owned by a different personal account. Because `C3P-Coder` is a dedicated dummy account with no other access, a Classic PAT is perfectly secure here.
     - *Why a PAT and not an SSH key?* An SSH key can only push code. The Coder agent must be able to interact with the GitHub API (via `gh` CLI) to programmatically open Pull Requests. The PAT serves as both the Git HTTPS password and the API token.
   - **Token 2 (The Reviewer):** Logged in as Admin, generate a token targeting `crisis_monitor`. Grant Read/Write to "Contents", "Pull requests", and "Workflows".
 - [ ] **Step 5: Clone and Authenticate Locally**
-  - On Marvin, clone the repo: `git clone https://github.com/yourusername/crisis_monitor.git`
-  - When prompted, authenticate using `C3P-Coder` and the **Coder PAT**.
+  - On Marvin, configure GitHub CLI authentication: `gh auth login`
+  - Choose HTTPS and paste the **Coder PAT** when prompted (this configures git automatically).
+  - Clone the repo: `git clone https://github.com/yourusername/crisis_monitor.git`
   - Move your existing local files (PRD, DEVOPS, backlog, scripts) into this cloned folder.
 - [ ] **Step 6: The First C3P Pull Request**
   - Create a branch: `git checkout -b feature/STORY-000-init`
   - Commit the files: `git add . && git commit -m "STORY-000: Initial C3P framework and PRD"`
   - Push the branch: `git push -u origin feature/STORY-000-init`
+  - Create the PR: `gh pr create --title "STORY-000: Initial C3P framework and PRD" --body "Setting up initial C3P methodology."`
   - Log in as Admin (or use your Reviewer LLM) to approve and merge this very first PR.
 - [ ] **Step 7: Provision Environments**
   - Set up Test and Prod servers/services.
@@ -92,7 +95,7 @@ To fully implement C3P with AI agents, you must enforce the "Separation of Dutie
 
 ### A. The "Coder" Token (Assigned to Marvin/Coding Agent via C3P-Coder account)
 *   **Role:** Writes code, pushes branches, opens Pull Requests.
-*   **Permissions:** Contents (Read/Write), Pull Requests (Read/Write).
+*   **Permissions:** `repo` and `read:org` scopes on a Classic PAT.
 *   **Restriction:** Blocked by GitHub Branch Protection from pushing to or merging into `main`.
 
 ### B. The "Reviewer" Token (Assigned to the Reviewer LLM via Admin account)
