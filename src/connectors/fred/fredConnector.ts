@@ -1,5 +1,10 @@
 import { fetchFredSeries } from './fredApiClient';
-import { YIELD_CURVE_INDICATORS } from './config';
+import {
+  YIELD_CURVE_INDICATORS,
+  CREDIT_SPREAD_INDICATORS,
+  UNEMPLOYMENT_INDICATORS,
+  PMI_INDICATORS,
+} from './config';
 import type { IndicatorObservation, IndicatorConfig } from './types';
 
 function normalizeObservations(
@@ -15,9 +20,7 @@ function normalizeObservations(
     }));
 }
 
-export async function fetchYieldCurveData(
-  indicators: IndicatorConfig[] = YIELD_CURVE_INDICATORS,
-): Promise<IndicatorObservation[]> {
+async function fetchIndicators(indicators: IndicatorConfig[]): Promise<IndicatorObservation[]> {
   const apiKey = process.env.FRED_API_KEY;
   if (!apiKey) {
     throw new Error('FRED_API_KEY environment variable is not set');
@@ -32,3 +35,19 @@ export async function fetchYieldCurveData(
 
   return results.flat();
 }
+
+export const fetchYieldCurveData = (
+  indicators: IndicatorConfig[] = YIELD_CURVE_INDICATORS,
+) => fetchIndicators(indicators);
+
+export const fetchCreditSpreadsData = (
+  indicators: IndicatorConfig[] = CREDIT_SPREAD_INDICATORS,
+) => fetchIndicators(indicators);
+
+export const fetchUnemploymentData = (
+  indicators: IndicatorConfig[] = UNEMPLOYMENT_INDICATORS,
+) => fetchIndicators(indicators);
+
+export const fetchPMIData = (
+  indicators: IndicatorConfig[] = PMI_INDICATORS,
+) => fetchIndicators(indicators);
