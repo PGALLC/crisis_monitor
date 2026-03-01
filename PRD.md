@@ -13,13 +13,14 @@ The **Crisis Monitor** is an automated intelligence web application designed to 
 ## 3. Core Features
 
 ### 3.1. Economic Indicator Tracking Engine
-The system will pull and track the following indicators on a daily basis:
-*   **Yield Curve (10Y minus 2Y Treasury):** Track inversion depth and normalization speed.
-*   **Credit Spreads (High Yield ICE BofA vs. Treasuries):** Monitor for spikes (e.g., sudden 50+ bps widening).
-*   **Unemployment (U-3 & Sahm Rule):** Track cycle lows and upward momentum.
-*   **PMI (Purchasing Managers' Index):** Track manufacturing vs. services contraction.
-*   **Output Metrics:** Calculate current value, distance from threshold/danger zone, and velocity/trend.
+The system will pull and track macroeconomic indicators on a daily basis. To ensure maintainability and future reuse, data fetching will be implemented using **Isolated Data Connectors**. Each connector will be responsible for authenticating with a specific data source, fetching the raw data, and normalizing it into a standard internal format. The specific data points fetched by each connector should be configurable.
 
+The core indicators to track initially are:
+*   **Yield Curve (10Y minus 2Y Treasury):** Track inversion depth and normalization speed. (Primary Source: FRED API)
+*   **Credit Spreads (High Yield ICE BofA vs. Treasuries):** Monitor for spikes (e.g., sudden 50+ bps widening). (Primary Source: FRED API)
+*   **Unemployment (U-3 & Sahm Rule):** Track cycle lows and upward momentum. (Primary Source: FRED API)
+*   **PMI (Purchasing Managers' Index):** Track manufacturing vs. services contraction. (Primary Source: ISM / FRED API)
+*   **Output Metrics:** Calculate current value, distance from threshold/danger zone, and velocity/trend.
 ### 3.2. Crisis Type Classifier
 Apply a rules engine to classify the current environment into states:
 *   **Healthy / Expansion, Late Cycle / Vulnerable, Deflationary Recession, Stagflation, Credit Crisis/Panic.**
