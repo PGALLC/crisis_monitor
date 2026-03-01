@@ -79,7 +79,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: Test
     env:
-      IMAGE_TAG: ${{ env.IMAGE_REPO }}:${{ github.sha }}
+      IMAGE_TAG: ghcr.io/pgallc/crisis_monitor:${{ github.sha }}
 
     steps:
       - uses: actions/checkout@v4
@@ -121,7 +121,7 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: Production
     env:
-      IMAGE_TAG: ${{ env.IMAGE_REPO }}:${{ github.sha }}
+      IMAGE_TAG: ghcr.io/pgallc/crisis_monitor:${{ github.sha }}
 
     steps:
       - uses: actions/checkout@v4
