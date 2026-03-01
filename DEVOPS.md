@@ -153,3 +153,4 @@ For every deployment, the following artifacts form an unbroken chain from Requir
 3. **External Log Store:** Push the evidence bundle to an external system like AWS S3 with Object Lock enabled, or a dedicated PostgreSQL evidence table.
 
 *(Decision required: We will revisit this before closing STORY-005).*
+
