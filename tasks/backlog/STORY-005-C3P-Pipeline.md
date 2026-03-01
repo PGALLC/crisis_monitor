@@ -11,3 +11,6 @@
 - Deployments fail if tests fail.
 - Deployment scripts run strictly in the CI environment (no human access).
 - The pipeline physically halts before the Production deployment step until the dedicated `C3P-SRE` account approves it.
+
+**C3P Workflow Security Note:** 
+Modifications to `.github/workflows/*.yml` files require the `workflow` scope. Under strict Segregation of Duties, standard Developers (`C3P-Coder`) DO NOT have the `workflow` scope. If pipeline changes are required, they must be committed by an identity holding Platform/Admin privileges.
