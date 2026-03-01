@@ -79,8 +79,6 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: Test
     env:
-  # Docker requires repository names to be strictly lowercase
-  IMAGE_REPO: ghcr.io/pgallc/crisis_monitor
       IMAGE_TAG: ${{ env.IMAGE_REPO }}:${{ github.sha }}
 
     steps:
@@ -123,8 +121,6 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: Production
     env:
-  # Docker requires repository names to be strictly lowercase
-  IMAGE_REPO: ghcr.io/pgallc/crisis_monitor
       IMAGE_TAG: ${{ env.IMAGE_REPO }}:${{ github.sha }}
 
     steps:
