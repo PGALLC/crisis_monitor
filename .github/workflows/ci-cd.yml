@@ -8,6 +8,8 @@ on:
     branches: [main]
 
 env:
+  # Docker requires repository names to be strictly lowercase
+  IMAGE_REPO: ghcr.io/pgallc/crisis_monitor
   GCP_PROJECT_ID: paulgresham-com
   GKE_CLUSTER_NAME: crisis-monitor-cluster
   GKE_CLUSTER_ZONE: us-east1
@@ -63,8 +65,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
-            ghcr.io/${{ github.repository }}:latest
+            ${{ env.IMAGE_REPO }}:${{ github.sha }}
+            ${{ env.IMAGE_REPO }}:latest
 
   # ============================================================
   # STAGE 3: Deploy to Test + Run Functional Tests
@@ -77,7 +79,9 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: Test
     env:
-      IMAGE_TAG: ghcr.io/${{ github.repository }}:${{ github.sha }}
+  # Docker requires repository names to be strictly lowercase
+  IMAGE_REPO: ghcr.io/pgallc/crisis_monitor
+      IMAGE_TAG: ${{ env.IMAGE_REPO }}:${{ github.sha }}
 
     steps:
       - uses: actions/checkout@v4
@@ -119,7 +123,9 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     environment: Production
     env:
-      IMAGE_TAG: ghcr.io/${{ github.repository }}:${{ github.sha }}
+  # Docker requires repository names to be strictly lowercase
+  IMAGE_REPO: ghcr.io/pgallc/crisis_monitor
+      IMAGE_TAG: ${{ env.IMAGE_REPO }}:${{ github.sha }}
 
     steps:
       - uses: actions/checkout@v4
