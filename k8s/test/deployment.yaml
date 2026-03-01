@@ -1,0 +1,63 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: crisis-monitor
+  namespace: crisis-monitor-test
+  labels:
+    app: crisis-monitor
+    story: STORY-000
+    environment: test
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: crisis-monitor
+  template:
+    metadata:
+      labels:
+        app: crisis-monitor
+        environment: test
+    spec:
+      containers:
+        - name: crisis-monitor
+          image: ${IMAGE_TAG}
+          ports:
+            - containerPort: 3000
+          env:
+            - name: NODE_ENV
+              value: "test"
+            - name: PORT
+              value: "3000"
+          resources:
+            requests:
+              cpu: "250m"
+              memory: "512Mi"
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 20
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: crisis-monitor
+  namespace: crisis-monitor-test
+spec:
+  selector:
+    app: crisis-monitor
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: LoadBalancer
