@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: crisis-monitor-test
+  labels:
+    environment: test
+    app: crisis-monitor
