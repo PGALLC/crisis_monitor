@@ -14,6 +14,9 @@ C3P ensures an audit-grade system of record by embedding compliance directly int
 ## 2. Order of Operations: Setup Checklist (Watertight Method)
 To ensure the chain of custody is cryptographically secure from **Commit Zero**, we must initialize the repository on GitHub first, lock it down, and force even the initial files through the C3P Pull Request process.
 
+### Phase 1: Initial C3P Framework Setup
+This phase establishes the repository, locks it down, and merges the initial documentation via a strict Pull Request to prove the C3P firewall works.
+
 - [ ] **Step 1: Create the GitHub Repository (With Initialization)**
   - From your Admin account, create a new, private repository named `crisis_monitor`.
   - **CRITICAL:** Check the box that says **"Add a README file"**. This instantly creates the `main` branch so we can protect it immediately.
@@ -43,10 +46,20 @@ To ensure the chain of custody is cryptographically secure from **Commit Zero**,
   - Push the branch: `git push -u origin feature/STORY-000-init`
   - Create the PR: `gh pr create --title "STORY-000: Initial C3P framework and PRD" --body "Setting up initial C3P methodology."`
   - Log in as Admin (or use your Reviewer LLM) to approve and merge this very first PR.
+
+### Phase 2: Hello World App & Pipeline Validation
+Once the initial PR is merged and the repository structure is locked, we validate the automated CI/CD deployment pipeline.
+
 - [ ] **Step 7: Provision Environments**
   - Set up Test and Prod servers/services.
   - Add deployment secrets to GitHub Settings > Secrets and variables > Actions.
   - Configure GitHub Environments (Test, Production) and add your Admin account as a required reviewer.
+- [ ] **Step 8: Execute STORY-000-Hello-World**
+  - The Coder agent creates a new branch `feature/STORY-000-Hello-World`.
+  - The Coder agent generates the Hello World app, unit tests, and GitHub Actions workflow file.
+  - The Coder agent commits, pushes, and creates a PR.
+  - The Reviewer approves the PR.
+  - The CI/CD pipeline automatically builds, tests, deploys to Test, pauses for approval, and deploys to Prod.
 
 ## 3. GitHub Repository Configuration Reference
 
