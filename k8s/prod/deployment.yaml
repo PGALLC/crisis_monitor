@@ -5,7 +5,7 @@ metadata:
   namespace: crisis-monitor-prod
   labels:
     app: crisis-monitor
-    story: STORY-000
+    story: STORY-001a
     environment: production
 spec:
   replicas: 2
@@ -28,6 +28,11 @@ spec:
               value: "production"
             - name: PORT
               value: "3000"
+            - name: FRED_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: fred-api-credentials
+                  key: api-key
           resources:
             requests:
               cpu: "250m"
