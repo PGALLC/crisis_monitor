@@ -12,6 +12,11 @@ describe('API Functional Tests', () => {
       expect(response.body.status).toBe('ok');
     });
 
+    it('should include a valid ISO 8601 timestamp', async () => {
+      const response = await request(app).get('/');
+      expect(response.body.timestamp).toMatch(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/);
+    });
+
     it('should return JSON content-type', async () => {
       const response = await request(app).get('/');
       expect(response.headers['content-type']).toMatch(/json/);
