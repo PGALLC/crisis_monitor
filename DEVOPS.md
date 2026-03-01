@@ -5,9 +5,10 @@ This document outlines the C3P (Continuous Compliance Control Protocol) methodol
 ## 1. The C3P Philosophy
 C3P ensures an audit-grade system of record by embedding compliance directly into the CI/CD pipeline. 
 *   **Immutable History:** The requirements (Stories) and code history (Git) are completely immutable.
-*   **Separation of Duties (3-Actor Model):** 
-    *   **Coder:** Writes code on feature branches. Cannot merge or deploy.
+*   **Separation of Duties (4-Actor Model):** 
+    *   **Coder:** Writes application code on feature branches. Cannot merge, cannot deploy, and *cannot alter CI/CD workflows*.
     *   **Reviewer:** Reviews and approves Pull Requests. Cannot deploy.
+    *   **Platform Engineer:** The only role authorized to create or modify the automated CI/CD pipelines (`.github/workflows/*.yml`).
     *   **SRE (Site Reliability Engineer):** Acts as the final gatekeeper for Production deployments.
 *   **Deployer (Automation):** A heavily restricted, automated CI/CD pipeline that handles artifact storage, testing, and deployment.
 *   **Evidence Pack:** Every release automatically generates proof of the Story ID, PR approval, code review, test results, and deployment approval.
@@ -37,6 +38,7 @@ This phase establishes the repository, locks it down, and merges the initial doc
   - **Token 1 (The Coder):** Logged in as `C3P-Coder`, go to Developer Settings > Personal access tokens > Tokens (classic). Create a **Classic PAT**. Check the `repo` and `read:org` scopes. Give this to Marvin.
     - *Why a Classic PAT?* Fine-Grained PATs cannot access repositories owned by a different personal/org account. Because `C3P-Coder` is a dedicated dummy account with no other access, a Classic PAT is perfectly secure here.
     - *Why a PAT and not an SSH key?* An SSH key can only push code. The Coder agent must be able to interact with the GitHub API (via `gh` CLI) to programmatically open Pull Requests. The PAT serves as both the Git HTTPS password and the API token.
+    - **CRITICAL SECURITY NOTE:** Ensure this token does **NOT** have the `workflow` scope. Coders must be physically blocked from tampering with the CI/CD machinery.
   - **Token 2 (The Reviewer):** Logged in as your Organization Owner account, generate a **Fine-Grained PAT**. 
     - *Organization Requirement:* In the top right corner of the Fine-Grained PAT creation screen, ensure the **"Resource owner"** dropdown is set to your Organization name (not your personal username).
     - If your Organization name is missing or disabled, go to your Organization Settings > Third-party Access > Personal access tokens > Settings, and check "Allow access via fine-grained personal access tokens".
@@ -64,8 +66,9 @@ Once the initial PR is merged and the repository structure is locked, we validat
   - **CRITICAL SRE GATE:** On the `Production` environment settings, add the `C3P-SRE` account as a Required Reviewer.
 - [ ] **Step 8: Execute STORY-000-Hello-World**
   - The Coder agent creates a new branch `feature/STORY-000-Hello-World`.
-  - The Coder agent generates the Hello World app, unit tests, and GitHub Actions workflow file.
-  - The Coder agent commits, pushes, and creates a PR.
+  - The Coder agent generates the Hello World app and unit tests.
+  - The Platform Engineer (Admin) commits the `.github/workflows/ci-cd.yml` file to the branch (as the Coder PAT lacks the `workflow` scope).
+  - The Coder agent commits the app code, pushes, and creates a PR.
   - The Reviewer approves the PR.
   - The CI/CD pipeline automatically builds, tests, and deploys to Test.
   - The CI/CD pipeline pauses. The SRE logs in, reviews the Test environment/logs, and approves the Production deployment.
@@ -113,23 +116,33 @@ The pipeline will execute the scripts located in `/scripts/`.
     5. Execute `scripts/deploy_prod.sh`.
     6. Run `npm run test:smoke`.
 
-## 6. Token Strategies for AI Agents (The 3-Actor Model)
-To fully implement enterprise-grade Segregation of Duties (SoD), we use three cryptographically distinct identities.
+## 6. Token Strategies for AI Agents (The 4-Actor Model)
+To fully implement enterprise-grade Segregation of Duties (SoD), we use four cryptographically distinct identities.
 
 ### A. The "Coder" Token (Assigned to Marvin/Coding Agent via C3P-Coder account)
-*   **Role:** Writes code, pushes branches, opens Pull Requests.
-*   **Permissions:** `repo` and `read:org` scopes on a Classic PAT.
-*   **Restriction:** Blocked by GitHub Branch Protection from pushing to or merging into `main`.
+*   **Role:** Writes application code, pushes branches, opens Pull Requests.
+*   **Permissions:** `repo` and `read:org` scopes on a Classic PAT. **Must exclude `workflow` scope.**
+*   **Restriction:** Blocked by GitHub Branch Protection from pushing to or merging into `main`. Physically prevented from altering `.github/workflows/` files.
 
 ### B. The "Reviewer" Token (Assigned to the Reviewer LLM via Admin account)
-*   **Role:** Reviews code, approves PRs, and triggers the merge.
-*   **Permissions:** Contents (Read/Write), Pull Requests (Read/Write), Workflows (Read/Write).
+*   **Role:** Reviews application code, approves PRs, and triggers the merge.
+*   **Permissions:** Contents (Read/Write), Pull Requests (Read/Write).
 *   **Restriction:** Prompted to *never* write code. Cannot approve its own PRs. Cannot push to Production (not listed as an SRE).
 
-### C. The "SRE" Account (Assigned to a dedicated Ops human or SRE LLM)
+### C. The "Platform Engineer" Account (Assigned to Human Admin / DevOps)
+*   **Role:** The architect of the automated CI/CD pipeline. The only entity legally allowed to create or edit `.github/workflows/*.yml` files.
+*   **Permissions:** Full repository admin privileges (includes the `workflow` scope).
+*   **Restriction:** Subject to the same Pull Request branch protection rules on `main`.
+
+### D. The "SRE" Account (Assigned to a dedicated Ops human or SRE LLM)
 *   **Role:** Reviews successful test deployments and manually approves the gate to Production.
 *   **Permissions:** Needs only "Read" access to the repository to view logs and the Environments interface. 
 *   **Restriction:** Cannot write code. Cannot merge PRs.
+
+### E. The C3P Solution for Automated Agents (No Admin Access)
+If you are using an automated coding agent (like Claude Code, OpenClaw, or Gemini CLI), **DO NOT grant it Admin access to the repository or install native integrations that demand Admin privileges.**
+*   *Why?* Admin access allows an agent to alter branch protection rules or workflows, completely bypassing the C3P firewall and destroying the cryptographic proof of Segregation of Duties.
+*   *The Solution:* Run the agent entirely within your local, restricted CLI environment (Step 5). By instructing the agent to run standard `git push` and `gh pr create` shell commands, it transparently inherits the heavily restricted `C3P-Coder` permissions.
 
 ## 7. Chain of Custody & Evidence Collection
 To satisfy audit and immigration requirements regarding your C3P framework, we must systematically collect proof that this process was followed. 
@@ -153,4 +166,3 @@ For every deployment, the following artifacts form an unbroken chain from Requir
 3. **External Log Store:** Push the evidence bundle to an external system like AWS S3 with Object Lock enabled, or a dedicated PostgreSQL evidence table.
 
 *(Decision required: We will revisit this before closing STORY-005).*
-
