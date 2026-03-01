@@ -137,3 +137,23 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+
+# Terraform configuration
+.terraform/
+*.tfstate
+*.tfstate.*
+*.tfplan
+
+# Ignore terraform .rc files that are used to configure the CLI
+.terraformrc
+terraform.rc
+
+# Ignore variable files that may contain sensitive data
+# You can uncomment the following line if you want to ignore all .tfvars files
+# *.tfvars
+# *.tfvars.json
+
+# Crash log files
+crash.log
+
