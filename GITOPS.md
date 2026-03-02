@@ -103,3 +103,19 @@ Because C3P strictly segregates duties, an implementation often requires multipl
      - [ ] **Reviewer:** Final code audit and approval.
 3. **Role Execution:** Each role executes their task on the shared feature branch and checks off their box in the PR.
 4. **The Final Merge:** The Reviewer is strictly forbidden from merging the PR until every checkbox in the cross-role task list is complete and the CI pipeline is green.
+
+## The C3P Event-Driven Swarm (Label Taxonomy)
+To orchestrate the multi-agent team asynchronously across different environments, this repository uses a strict set of GitHub Labels. These labels act as the state machine for the C3P polling daemons.
+
+**The Master Labels:**
+*   `C3P: Waiting on Analyst` - Triggers the Analyst agent (Usually applied to new Issues).
+*   `C3P: Waiting on Coder` - Triggers the Coder agent (Applied to Issues ready for dev, or PRs needing Coder fixes).
+*   `C3P: Waiting on PE` - Triggers the Platform Engineer agent (Applied to PRs needing infrastructure updates).
+*   `C3P: Ready for Review` - Triggers the Reviewer agent (Applied to PRs awaiting code audit or orchestration).
+*   `C3P: Waiting on SRE` - Triggers the SRE agent (Applied to PRs or Issues needing operational insight/diagnostics).
+
+**Rules for Agents:**
+1. When your human operator or polling script wakes you up, look for your specific `C3P: Waiting on [Role]` label.
+2. When you finish your task, you MUST remove your label.
+3. You MUST apply the label of the next role required (e.g., if you are the Coder and you open a PR, apply `C3P: Ready for Review`).
+4. **The Reviewer is the Traffic Cop:** On Pull Requests, only the Reviewer is allowed to apply the `Waiting on PE` or `Waiting on Coder` labels to orchestrate the PR Task List.
