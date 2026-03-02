@@ -155,24 +155,23 @@ describe('fetchUnemploymentData()', () => {
 
 // STORY-001d
 describe('fetchPMIData()', () => {
-  it('fetches NAPM as PMI_MANUFACTURING by default', async () => {
+  it('fetches IPMAN as MANUFACTURING_PRODUCTION by default (NAPM removed from FRED in 2016)', async () => {
     mockFetchFredSeries.mockResolvedValue({ observations: [] });
     await fetchPMIData();
-    expect(mockFetchFredSeries).toHaveBeenCalledWith('NAPM', 'test-api-key');
+    expect(mockFetchFredSeries).toHaveBeenCalledWith('IPMAN', 'test-api-key');
   });
 
-  it('normalizes monthly PMI data comparable against the 50.0 threshold', async () => {
+  it('normalizes monthly manufacturing production index data', async () => {
     mockFetchFredSeries.mockResolvedValue({
       observations: [
-        { realtime_start: '', realtime_end: '', date: '2024-01-01', value: '49.1' }, // contraction
-        { realtime_start: '', realtime_end: '', date: '2024-02-01', value: '52.3' }, // expansion
+        { realtime_start: '', realtime_end: '', date: '2024-01-01', value: '98.3' },
+        { realtime_start: '', realtime_end: '', date: '2024-02-01', value: '99.1' },
       ],
     });
 
     const result = await fetchPMIData();
     expect(result).toHaveLength(2);
-    expect(result[0]).toEqual({ date: '2024-01-01', value: 49.1, indicatorType: 'PMI_MANUFACTURING' });
-    expect(result.find(r => r.value < 50.0)).toBeDefined(); // contraction reading present
-    expect(result.find(r => r.value > 50.0)).toBeDefined(); // expansion reading present
+    expect(result[0]).toEqual({ date: '2024-01-01', value: 98.3, indicatorType: 'MANUFACTURING_PRODUCTION' });
+    expect(result[1]).toEqual({ date: '2024-02-01', value: 99.1, indicatorType: 'MANUFACTURING_PRODUCTION' });
   });
 });
