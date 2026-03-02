@@ -91,3 +91,15 @@ You are now ready to start Phase 1 again for the next Story!
 To preserve the immutable requirement history and audit trails:
 1. **NEVER edit the original body description of a GitHub Issue.**
 2. If you need to add findings, correct assumptions, or communicate with other roles, you must add a **comment** to the issue using `gh issue comment <number> -b "Your comment here"`.
+
+## Cross-Role Communication Protocol (The PR Checklist)
+Because C3P strictly segregates duties, an implementation often requires multiple roles to collaborate on a single feature branch before it can be merged. To prevent miscommunication and ensure all required infrastructure/testing is complete:
+
+1. **Coder Initialization:** When the Coder opens a Pull Request, they must explicitly state if Platform Engineering (PE) assistance is required (e.g., changes to Dockerfiles, pipeline scripts).
+2. **Reviewer Orchestration:** The Reviewer acts as the project manager for the PR. Upon seeing a new PR, the Reviewer must inject a **Markdown Task List** into the PR description or as the first comment, explicitly tagging the required roles.
+   - Example:
+     - [ ] **Coder:** Application logic complete and passing unit tests.
+     - [ ] **Platform Engineer:** Dockerfile updated for new port.
+     - [ ] **Reviewer:** Final code audit and approval.
+3. **Role Execution:** Each role executes their task on the shared feature branch and checks off their box in the PR.
+4. **The Final Merge:** The Reviewer is strictly forbidden from merging the PR until every checkbox in the cross-role task list is complete and the CI pipeline is green.
