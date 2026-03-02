@@ -1,7 +1,8 @@
 import express, { Application, Request, Response } from 'express';
 // Route convention: each domain gets its own Express Router in src/routes/.
 // createApp() is a pure composition root — no inline route handlers here.
-import fredRouter from './routes/fred';
+import fredRouter           from './routes/fred';
+import classificationRouter from './routes/classification';
 
 export function createApp(): Application {
   const app = express();
@@ -15,6 +16,7 @@ export function createApp(): Application {
   });
 
   app.use('/api', fredRouter);
+  app.use('/api', classificationRouter);
 
   return app;
 }
