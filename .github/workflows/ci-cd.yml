@@ -6,6 +6,16 @@ on:
     branches: [main]
   push:
     branches: [main]
+    paths-ignore:
+      # Documentation and role instructions — no deployment impact
+      - '**/*.md'
+      # Task tracking files
+      - 'tasks/**'
+      # Repo housekeeping
+      - '.gitignore'
+      - 'LICENSE'
+      # Terraform infrastructure (managed separately, not part of app pipeline)
+      - 'infra/**'
 
 env:
   # Docker requires repository names to be strictly lowercase
