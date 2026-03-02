@@ -149,3 +149,5 @@ vite.config.ts.timestamp-*
 # Crash log files
 crash.log
 
+# Compiled test artefacts (tsc output before outDir was set)
+tests/**/*.js
