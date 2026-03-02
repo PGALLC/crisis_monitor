@@ -86,3 +86,8 @@ git branch -d feature/STORY-000-short-description
 ```
 
 You are now ready to start Phase 1 again for the next Story!
+
+## Global Issue Management Rules
+To preserve the immutable requirement history and audit trails:
+1. **NEVER edit the original body description of a GitHub Issue.**
+2. If you need to add findings, correct assumptions, or communicate with other roles, you must add a **comment** to the issue using `gh issue comment <number> -b "Your comment here"`.
