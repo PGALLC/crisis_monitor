@@ -27,7 +27,17 @@ envsubst '${IMAGE_TAG}' < k8s/prod/deployment.yaml | kubectl apply -f -
 echo "Waiting for rollout to complete..."
 kubectl rollout status deployment/crisis-monitor -n crisis-monitor-prod --timeout=300s
 
-echo "Running Post-Release Smoke Tests..."
+echo "Getting Production LoadBalancer IP..."
+PROD_IP=$(kubectl get service crisis-monitor -n crisis-monitor-prod \
+  -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+if [ -z "$PROD_IP" ]; then
+  echo "Error: Could not retrieve Production LoadBalancer IP. Aborting smoke tests."
+  exit 1
+fi
+
+export BASE_URL="http://${PROD_IP}"
+echo "Running Post-Release Smoke Tests against ${BASE_URL}..."
 npm run test:smoke
 
 echo "Production Deployment Complete. Generating Final Compliance Evidence Pack."
