@@ -1,17 +1,50 @@
+/**
+ * Smoke Tests
+ *
+ * When BASE_URL is set (post-deployment in CI/CD), tests hit the live cluster
+ * service via HTTP — this is the true post-deploy sanity check.
+ *
+ * Without BASE_URL (local dev), tests fall back to an in-process supertest
+ * server so the suite can still be run locally.
+ */
 import request from 'supertest';
 import { createApp } from '../../src/app';
 
-const app = createApp();
+const BASE_URL = process.env.BASE_URL;
+
+type JsonBody = Record<string, unknown>;
+
+async function get(path: string): Promise<{ status: number; body: JsonBody }> {
+  if (BASE_URL) {
+    const res = await fetch(`${BASE_URL}${path}`);
+    const body = (await res.json()) as JsonBody;
+    return { status: res.status, body };
+  }
+  const res = await request(createApp()).get(path);
+  return { status: res.status, body: res.body as JsonBody };
+}
 
 describe('Smoke Tests', () => {
-  it('server responds to requests', async () => {
-    const response = await request(app).get('/health');
-    expect(response.status).toBe(200);
+  it(`GET /health returns 200 [${BASE_URL ?? 'in-process'}]`, async () => {
+    const { status, body } = await get('/health');
+    expect(status).toBe(200);
+    expect(body.status).toBe('healthy');
   });
 
-  it('main endpoint is accessible', async () => {
-    const response = await request(app).get('/');
-    expect(response.status).toBe(200);
-    expect(response.body).toHaveProperty('message');
+  it(`GET / returns 200 with Hello World [${BASE_URL ?? 'in-process'}]`, async () => {
+    const { status, body } = await get('/');
+    expect(status).toBe(200);
+    expect(body.message).toBe('Hello World');
+  });
+
+  it(`GET /api/health/fred returns 200 with all four indicator sets [${BASE_URL ?? 'in-process'}]`, async () => {
+    const { status, body } = await get('/api/health/fred');
+    expect(status).toBe(200);
+    expect(body.status).toBe('ok');
+    const indicators = body.indicators as JsonBody;
+    expect(indicators).toHaveProperty('yieldCurve');
+    expect(indicators).toHaveProperty('creditSpreads');
+    expect(indicators).toHaveProperty('unemployment');
+    expect(indicators).toHaveProperty('pmi');
   });
 });
