@@ -31,3 +31,4 @@ This project strictly follows the Continuous Compliance Control Protocol (C3P).
    - **Deployer:** A completely automated CI/CD pipeline (e.g., GitHub Actions). Humans do not have deployment access.
 4. **Testing:** Unit tests (`npm run test:unit`) must be separate from functional/regression tests (`npm run test:functional`).
 5. **Deployment:** Must use the `/scripts/deploy_test.sh` and `/scripts/deploy_prod.sh` scripts running strictly within the automated pipeline.
+6. **Cross-Role Protocol:** If your feature requires Platform Engineering (e.g., changes to Dockerfiles, pipelines), explicitly state this in the PR body. Wait for the Reviewer to generate the PR Task List, and do not merge until the PE has completed their tasks on your shared branch.
