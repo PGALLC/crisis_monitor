@@ -21,7 +21,7 @@ function normalizeObservations(
 }
 
 async function fetchIndicators(indicators: IndicatorConfig[]): Promise<IndicatorObservation[]> {
-  const apiKey = process.env.FRED_API_KEY;
+  const apiKey = process.env.FRED_API_KEY?.trim();
   if (!apiKey) {
     throw new Error('FRED_API_KEY environment variable is not set');
   }

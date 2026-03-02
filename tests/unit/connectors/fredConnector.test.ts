@@ -94,6 +94,16 @@ describe('fetchYieldCurveData()', () => {
     await expect(fetchYieldCurveData()).rejects.toThrow('FRED_API_KEY environment variable is not set');
     expect(mockFetchFredSeries).not.toHaveBeenCalled();
   });
+
+  it('trims whitespace from FRED_API_KEY before use (guards against K8s secret trailing newline)', async () => {
+    process.env.FRED_API_KEY = '  test-api-key\n';
+    mockFetchFredSeries.mockResolvedValue({ observations: [] });
+
+    await fetchYieldCurveData();
+
+    expect(mockFetchFredSeries).toHaveBeenCalledWith('DGS10', 'test-api-key');
+    expect(mockFetchFredSeries).toHaveBeenCalledWith('DGS2', 'test-api-key');
+  });
 });
 
 // STORY-001b
