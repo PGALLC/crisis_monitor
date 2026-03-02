@@ -46,5 +46,12 @@ describe('Smoke Tests', () => {
     expect(fred.status).toBe('ok');
     const sample = fred.sample as JsonBody;
     expect(sample.series).toBe('DGS10');
+
+    // Deployment gate: when EXPECTED_GIT_SHA is set (injected by deploy script),
+    // assert the running image matches the SHA that was just built and pushed.
+    const expectedSha = process.env.EXPECTED_GIT_SHA;
+    if (expectedSha) {
+      expect(body.gitSha).toBe(expectedSha);
+    }
   });
 });
