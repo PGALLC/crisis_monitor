@@ -37,7 +37,8 @@ if [ -z "$PROD_IP" ]; then
 fi
 
 export BASE_URL="http://${PROD_IP}"
-echo "Running Post-Release Smoke Tests against ${BASE_URL}..."
+export EXPECTED_GIT_SHA="${GITHUB_SHA}"
+echo "Running Post-Release Smoke Tests against ${BASE_URL} (expecting SHA ${EXPECTED_GIT_SHA})..."
 npm run test:smoke
 
 echo "Production Deployment Complete. Generating Final Compliance Evidence Pack."
