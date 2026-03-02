@@ -19,6 +19,7 @@ export function createApp(): Application {
   // post-deployment sanity checks.
   app.get('/api/health/fred', async (_req: Request, res: Response) => {
     const version = packageJson.version;
+    const gitSha = process.env.GIT_SHA ?? 'dev';
     try {
       const apiKey = process.env.FRED_API_KEY?.trim();
       if (!apiKey) {
@@ -31,12 +32,14 @@ export function createApp(): Application {
       res.json({
         status: 'ok',
         version,
+        gitSha,
         fred: { status: 'ok', sample: { series: 'DGS10', observations } },
       });
     } catch (error) {
       res.status(503).json({
         status: 'error',
         version,
+        gitSha,
         message: error instanceof Error ? error.message : 'Unknown error',
       });
     }

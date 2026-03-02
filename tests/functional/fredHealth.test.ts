@@ -23,13 +23,14 @@ afterEach(() => {
 });
 
 describe('GET /api/health/fred', () => {
-  it('returns 200 with version and DGS10 connectivity sample', async () => {
+  it('returns 200 with version, gitSha, and DGS10 connectivity sample', async () => {
     const app = createApp();
     const response = await request(app).get('/api/health/fred');
 
     expect(response.status).toBe(200);
     expect(response.body.status).toBe('ok');
     expect(response.body.version).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(response.body.gitSha).toBe('dev'); // 'dev' when GIT_SHA env var is not set
     expect(response.body.fred.status).toBe('ok');
     expect(response.body.fred.sample.series).toBe('DGS10');
     expect(response.body.fred.sample.observations).toHaveLength(3);
@@ -37,7 +38,16 @@ describe('GET /api/health/fred', () => {
     expect(mockFetchFredSeries).toHaveBeenCalledWith('DGS10', 'test-api-key', { limit: 3 });
   });
 
-  it('returns 503 with version when FRED_API_KEY is not set', async () => {
+  it('reflects GIT_SHA env var in the response', async () => {
+    process.env.GIT_SHA = 'abc1234';
+    const app = createApp();
+    const response = await request(app).get('/api/health/fred');
+
+    expect(response.body.gitSha).toBe('abc1234');
+    delete process.env.GIT_SHA;
+  });
+
+  it('returns 503 with version and gitSha when FRED_API_KEY is not set', async () => {
     delete process.env.FRED_API_KEY;
     const app = createApp();
     const response = await request(app).get('/api/health/fred');
@@ -45,11 +55,12 @@ describe('GET /api/health/fred', () => {
     expect(response.status).toBe(503);
     expect(response.body.status).toBe('error');
     expect(response.body.version).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(response.body.gitSha).toBeDefined();
     expect(response.body.message).toMatch('FRED_API_KEY');
     expect(mockFetchFredSeries).not.toHaveBeenCalled();
   });
 
-  it('returns 503 with version when the FRED API call fails', async () => {
+  it('returns 503 with version and gitSha when the FRED API call fails', async () => {
     mockFetchFredSeries.mockRejectedValue(new Error('FRED API error: 400 Bad Request'));
     const app = createApp();
     const response = await request(app).get('/api/health/fred');
@@ -57,6 +68,7 @@ describe('GET /api/health/fred', () => {
     expect(response.status).toBe(503);
     expect(response.body.status).toBe('error');
     expect(response.body.version).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(response.body.gitSha).toBeDefined();
     expect(response.body.message).toMatch('FRED API error');
   });
 });
