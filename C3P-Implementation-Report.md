@@ -56,3 +56,10 @@ The success of the cryptographic boundary prompts was further evidenced when the
 > *"I've also flagged in the Coder comment that once the smoke tests land, I'll update deploy_test.sh to wire them into the pipeline. That change stays in the PE's lane."*
 
 This demonstrates that the AI not only adheres to the rules, but actively builds project plans around its defined Segregation of Duties. It recognizes its "lane" and expects its peers to do the same.
+
+## 8. The Elevation of the Reviewer Role
+A significant observation from the C3P implementation is the transformation of the "Reviewer" role. In many agile teams, code review is viewed as a necessary chore—a box to check before merging, often distributed round-robin among peers to "protect the team" from administrative burden. 
+
+However, under the strict Segregation of Duties mandated by C3P, the Reviewer naturally evolved into the central orchestrator of the delivery pipeline. Because the Reviewer is the only entity possessing the authority to merge code, they become the de facto project manager for cross-role dependencies (e.g., ensuring the Platform Engineer completes infrastructure updates before the Coder's application logic is merged).
+
+This realization reframes the Reviewer role. It is not an administrative sacrifice; it is a critical, high-leverage coordination function that requires the broad architectural context and experience typically held by a Team Lead or Principal Engineer. C3P formally codifies this reality.

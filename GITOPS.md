@@ -91,7 +91,7 @@ You are now ready to start Phase 1 again for the next Story!
 To preserve the immutable requirement history and audit trails:
 1. **NEVER edit the original body description of a GitHub Issue.**
 2. If you need to add findings, correct assumptions, or communicate with other roles, you must add a **comment** to the issue using `gh issue comment <number> -b "Your comment here"`.
-
+3. **Assignment Protocol:** If you need another role to take action on a bug or issue (e.g., the Platform Engineer needs the SRE to check production logs), you must **re-open the issue** (if it was closed), add your instructions as a comment, and use the `gh issue edit <number> --add-assignee <username>` command to formally assign the ticket to the required party. Do not leave tickets unassigned when blocked.
 ## Cross-Role Communication Protocol (The PR Checklist)
 Because C3P strictly segregates duties, an implementation often requires multiple roles to collaborate on a single feature branch before it can be merged. To prevent miscommunication and ensure all required infrastructure/testing is complete:
 
