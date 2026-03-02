@@ -1,6 +1,5 @@
 import express, { Application, Request, Response } from 'express';
 import { fetchFredSeries } from './connectors/fred/fredApiClient';
-import packageJson from '../package.json';
 
 export function createApp(): Application {
   const app = express();
@@ -18,7 +17,7 @@ export function createApp(): Application {
   // is reachable. Returns the app version alongside the sample for easy
   // post-deployment sanity checks.
   app.get('/api/health/fred', async (_req: Request, res: Response) => {
-    const version = packageJson.version;
+    const version = process.env.VERSION ?? 'unknown';
     const gitSha = process.env.GIT_SHA ?? 'dev';
     try {
       const apiKey = process.env.FRED_API_KEY?.trim();
