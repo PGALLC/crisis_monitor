@@ -50,3 +50,9 @@ A deployment failure was identified (see GitHub Issue #23). The AI agent acting 
 The result was an emergent, compliant workflow: the Platform Engineer agent explicitly refused to alter the application logic. Instead, it updated the ticket, requested the SRE run specific diagnostic checks, and formally kicked the missing test requirement back to the Coder and Reviewer. 
 
 This interaction demonstrates a critical leap forward in AI software development. By enforcing strict Segregation of Duties and relying on cryptographic friction (the inability to merge without distinct approvals), we prevent "rogue AI" behavior. The agents are forced to communicate, document their findings in the system of record, and rely on their specialized counterparts, exactly as a mature, human-led engineering organization would operate under SOX controls.
+
+The success of the cryptographic boundary prompts was further evidenced when the Platform Engineer agent explicitly communicated its dependencies to the Coder agent, stating: 
+
+> *"I've also flagged in the Coder comment that once the smoke tests land, I'll update deploy_test.sh to wire them into the pipeline. That change stays in the PE's lane."*
+
+This demonstrates that the AI not only adheres to the rules, but actively builds project plans around its defined Segregation of Duties. It recognizes its "lane" and expects its peers to do the same.
