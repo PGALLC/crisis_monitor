@@ -59,6 +59,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Extract package version
+        id: pkg
+        run: echo "version=$(node -p "require('./package.json').version")" >> $GITHUB_OUTPUT
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
@@ -67,6 +71,9 @@ jobs:
           tags: |
             ${{ env.IMAGE_REPO }}:${{ github.sha }}
             ${{ env.IMAGE_REPO }}:latest
+          build-args: |
+            GIT_SHA=${{ github.sha }}
+            VERSION=${{ steps.pkg.outputs.version }}
 
   # ============================================================
   # STAGE 3: Deploy to Test + Run Functional Tests

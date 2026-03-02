@@ -14,11 +14,14 @@ const mockObservations = [
 
 beforeEach(() => {
   process.env.FRED_API_KEY = 'test-api-key';
+  process.env.VERSION = '0.1.0';
   mockFetchFredSeries.mockResolvedValue({ observations: mockObservations });
 });
 
 afterEach(() => {
   delete process.env.FRED_API_KEY;
+  delete process.env.VERSION;
+  delete process.env.GIT_SHA;
   jest.clearAllMocks();
 });
 
@@ -44,7 +47,7 @@ describe('GET /api/health/fred', () => {
     const response = await request(app).get('/api/health/fred');
 
     expect(response.body.gitSha).toBe('abc1234');
-    delete process.env.GIT_SHA;
+    // cleanup handled by afterEach — safe even if assertion above throws
   });
 
   it('returns 503 with version and gitSha when FRED_API_KEY is not set', async () => {
