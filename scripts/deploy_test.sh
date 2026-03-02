@@ -28,4 +28,18 @@ kubectl rollout status deployment/crisis-monitor -n crisis-monitor-test --timeou
 echo "Running Functional / Regression Tests..."
 npm run test:functional
 
+echo "Getting Test LoadBalancer IP..."
+TEST_IP=$(kubectl get service crisis-monitor -n crisis-monitor-test \
+  -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
+
+if [ -z "$TEST_IP" ]; then
+  echo "Error: Could not retrieve Test LoadBalancer IP. Aborting smoke tests."
+  exit 1
+fi
+
+export BASE_URL="http://${TEST_IP}"
+export EXPECTED_GIT_SHA="${GITHUB_SHA}"
+echo "Running Smoke Tests against ${BASE_URL} (expecting SHA ${EXPECTED_GIT_SHA})..."
+npm run test:smoke
+
 echo "Test Environment Deployment and Validation Complete."
