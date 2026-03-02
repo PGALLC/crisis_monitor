@@ -37,14 +37,21 @@ describe('Smoke Tests', () => {
     expect(body.message).toBe('Hello World');
   });
 
-  it(`GET /api/health/fred returns 200 with all four indicator sets [${BASE_URL ?? 'in-process'}]`, async () => {
+  it(`GET /api/health/fred returns 200 with version and DGS10 sample [${BASE_URL ?? 'in-process'}]`, async () => {
     const { status, body } = await get('/api/health/fred');
     expect(status).toBe(200);
     expect(body.status).toBe('ok');
-    const indicators = body.indicators as JsonBody;
-    expect(indicators).toHaveProperty('yieldCurve');
-    expect(indicators).toHaveProperty('creditSpreads');
-    expect(indicators).toHaveProperty('unemployment');
-    expect(indicators).toHaveProperty('pmi');
+    expect(body.version).toMatch(/^\d+\.\d+\.\d+$/);
+    const fred = body.fred as JsonBody;
+    expect(fred.status).toBe('ok');
+    const sample = fred.sample as JsonBody;
+    expect(sample.series).toBe('DGS10');
+
+    // Deployment gate: when EXPECTED_GIT_SHA is set (injected by deploy script),
+    // assert the running image matches the SHA that was just built and pushed.
+    const expectedSha = process.env.EXPECTED_GIT_SHA;
+    if (expectedSha) {
+      expect(body.gitSha).toBe(expectedSha);
+    }
   });
 });

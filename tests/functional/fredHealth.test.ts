@@ -1,46 +1,74 @@
 import request from 'supertest';
 import { createApp } from '../../src/app';
-import * as fredConnector from '../../src/connectors/fred/fredConnector';
+import { fetchFredSeries } from '../../src/connectors/fred/fredApiClient';
 
-jest.mock('../../src/connectors/fred/fredConnector');
+jest.mock('../../src/connectors/fred/fredApiClient');
 
-const mockYieldCurve = [{ date: '2024-01-01', value: 4.50, indicatorType: 'YIELD_10Y' }];
-const mockSpreads   = [{ date: '2024-01-01', value: 3.25, indicatorType: 'HY_CREDIT_SPREAD' }];
-const mockUnemp     = [{ date: '2024-01-01', value: 3.7,  indicatorType: 'UNEMPLOYMENT_U3' }];
-const mockPmi       = [{ date: '2024-01-01', value: 49.1, indicatorType: 'PMI_MANUFACTURING' }];
+const mockFetchFredSeries = fetchFredSeries as jest.MockedFunction<typeof fetchFredSeries>;
+
+const mockObservations = [
+  { realtime_start: '', realtime_end: '', date: '2026-02-26', value: '4.02' },
+  { realtime_start: '', realtime_end: '', date: '2026-02-25', value: '4.05' },
+  { realtime_start: '', realtime_end: '', date: '2026-02-24', value: '4.04' },
+];
 
 beforeEach(() => {
-  (fredConnector.fetchYieldCurveData  as jest.Mock).mockResolvedValue(mockYieldCurve);
-  (fredConnector.fetchCreditSpreadsData as jest.Mock).mockResolvedValue(mockSpreads);
-  (fredConnector.fetchUnemploymentData as jest.Mock).mockResolvedValue(mockUnemp);
-  (fredConnector.fetchPMIData          as jest.Mock).mockResolvedValue(mockPmi);
+  process.env.FRED_API_KEY = 'test-api-key';
+  mockFetchFredSeries.mockResolvedValue({ observations: mockObservations });
 });
 
-afterEach(() => jest.clearAllMocks());
+afterEach(() => {
+  delete process.env.FRED_API_KEY;
+  jest.clearAllMocks();
+});
 
 describe('GET /api/health/fred', () => {
-  it('returns 200 with normalized indicator data from all four connectors', async () => {
+  it('returns 200 with version, gitSha, and DGS10 connectivity sample', async () => {
     const app = createApp();
     const response = await request(app).get('/api/health/fred');
 
     expect(response.status).toBe(200);
     expect(response.body.status).toBe('ok');
-    expect(response.body.indicators.yieldCurve).toEqual(mockYieldCurve);
-    expect(response.body.indicators.creditSpreads).toEqual(mockSpreads);
-    expect(response.body.indicators.unemployment).toEqual(mockUnemp);
-    expect(response.body.indicators.pmi).toEqual(mockPmi);
+    expect(response.body.version).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(response.body.gitSha).toBe('dev'); // 'dev' when GIT_SHA env var is not set
+    expect(response.body.fred.status).toBe('ok');
+    expect(response.body.fred.sample.series).toBe('DGS10');
+    expect(response.body.fred.sample.observations).toHaveLength(3);
+    expect(response.body.fred.sample.observations[0]).toEqual({ date: '2026-02-26', value: 4.02 });
+    expect(mockFetchFredSeries).toHaveBeenCalledWith('DGS10', 'test-api-key', { limit: 3 });
   });
 
-  it('returns 503 with an error message when a connector fails', async () => {
-    (fredConnector.fetchYieldCurveData as jest.Mock).mockRejectedValue(
-      new Error('FRED_API_KEY environment variable is not set'),
-    );
+  it('reflects GIT_SHA env var in the response', async () => {
+    process.env.GIT_SHA = 'abc1234';
+    const app = createApp();
+    const response = await request(app).get('/api/health/fred');
 
+    expect(response.body.gitSha).toBe('abc1234');
+    delete process.env.GIT_SHA;
+  });
+
+  it('returns 503 with version and gitSha when FRED_API_KEY is not set', async () => {
+    delete process.env.FRED_API_KEY;
     const app = createApp();
     const response = await request(app).get('/api/health/fred');
 
     expect(response.status).toBe(503);
     expect(response.body.status).toBe('error');
+    expect(response.body.version).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(response.body.gitSha).toBeDefined();
     expect(response.body.message).toMatch('FRED_API_KEY');
+    expect(mockFetchFredSeries).not.toHaveBeenCalled();
+  });
+
+  it('returns 503 with version and gitSha when the FRED API call fails', async () => {
+    mockFetchFredSeries.mockRejectedValue(new Error('FRED API error: 400 Bad Request'));
+    const app = createApp();
+    const response = await request(app).get('/api/health/fred');
+
+    expect(response.status).toBe(503);
+    expect(response.body.status).toBe('error');
+    expect(response.body.version).toMatch(/^\d+\.\d+\.\d+$/);
+    expect(response.body.gitSha).toBeDefined();
+    expect(response.body.message).toMatch('FRED API error');
   });
 });
