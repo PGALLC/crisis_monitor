@@ -14,11 +14,13 @@ const mockObservations = [
 
 beforeEach(() => {
   process.env.FRED_API_KEY = 'test-api-key';
+  process.env.VERSION = '0.1.0';
   mockFetchFredSeries.mockResolvedValue({ observations: mockObservations });
 });
 
 afterEach(() => {
   delete process.env.FRED_API_KEY;
+  delete process.env.VERSION;
   delete process.env.GIT_SHA;
   jest.clearAllMocks();
 });
