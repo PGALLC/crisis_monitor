@@ -5,7 +5,8 @@ This document outlines the C3P (Continuous Compliance Control Protocol) methodol
 ## 1. The C3P Philosophy
 C3P ensures an audit-grade system of record by embedding compliance directly into the CI/CD pipeline. 
 *   **Immutable History:** The requirements (Stories) and code history (Git) are completely immutable.
-*   **Separation of Duties (4-Actor Model):** 
+*   **Separation of Duties (5-Actor Model):** 
+    *   **Analyst:** Owns the business requirements (Issues). Defines what must be built. Cannot write code or deploy.
     *   **Coder:** Writes application code on feature branches. Cannot merge, cannot deploy, and *cannot alter CI/CD workflows*.
     *   **Reviewer:** Reviews and approves Pull Requests. Cannot deploy.
     *   **Platform Engineer:** The only role authorized to create or modify the automated CI/CD pipelines (`.github/workflows/*.yml`).
@@ -116,8 +117,13 @@ The pipeline will execute the scripts located in `/scripts/`.
     5. Execute `scripts/deploy_prod.sh`.
     6. Run `npm run test:smoke`.
 
-## 6. Token Strategies for AI Agents (The 4-Actor Model)
+## 6. Token Strategies for AI Agents (The 5-Actor Model)
 To fully implement enterprise-grade Segregation of Duties (SoD), we use four cryptographically distinct identities.
+
+### Pre-requisite: The "Analyst" Role
+*   **Role:** Defines the business reason for change via GitHub Issues.
+*   **Permissions:** Needs only "Read" and "Issues (Read/Write)" access.
+*   **Restriction:** Does not need code write access.
 
 ### A. The "Coder" Token (Assigned to Marvin/Coding Agent via C3P-Coder account)
 *   **Role:** Writes application code, pushes branches, opens Pull Requests.
