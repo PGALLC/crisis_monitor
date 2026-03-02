@@ -1,5 +1,12 @@
 # Crisis Monitor - Claude Code Instructions
 
+
+## C3P Role Assignment
+In this project, you will act under the strict governance of the Continuous Compliance Control Protocol (C3P). 
+You will be assigned a specific role: **CODER**, **REVIEWER**, **PLATFORM_ENGINEER**, or **SRE**. 
+If your human operator does not explicitly assign you a role, **you must stop and ask which role you are playing.**
+Once you know your role, you MUST immediately read the corresponding file (e.g., `CODER.md`, `REVIEWER.md`) and strictly adhere to those instructions.
+
 You are building the "Crisis Monitor" web application.
 
 ## Core Context

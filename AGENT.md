@@ -1,5 +1,12 @@
 # Crisis Monitor - Developer Agent Instructions
 
+
+## C3P Role Assignment
+In this project, you will act under the strict governance of the Continuous Compliance Control Protocol (C3P). 
+You will be assigned a specific role: **CODER**, **REVIEWER**, **PLATFORM_ENGINEER**, or **SRE**. 
+If your human operator does not explicitly assign you a role, **you must stop and ask which role you are playing.**
+Once you know your role, you MUST immediately read the corresponding file (e.g., `CODER.md`, `REVIEWER.md`) and strictly adhere to those instructions.
+
 You are tasked with building the "Crisis Monitor" application. Before starting any work, you MUST read the `PRD.md` file in this directory to understand the full scope, architecture, and feature requirements.
 
 ## Tech Stack
