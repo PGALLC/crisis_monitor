@@ -106,6 +106,32 @@ The target environments (Test and Production) must be completely isolated from t
 2. **Create Deployment Service Accounts:** Create a dedicated IAM role or service account for GitHub Actions. This account should only have the exact permissions needed to pull the built artifact and restart the service.
 3. **Revoke Human Access:** Once the CI/CD pipeline is confirmed working, revoke your personal SSH/write access to the Production environment. All changes must flow through Git and the pipeline.
 
+### Current Infrastructure (Hostinger VPS)
+
+| Key      | Server Name | Tailscale IP   | External IP     |
+|----------|-------------|----------------|-----------------|
+| VPS_HOST | srv1520037  | 100.106.2.100  | 187.124.241.43  |
+
+**Deployed Service URLs:**
+- **Test:** http://187.124.241.43:3001
+- **Prod:** http://187.124.241.43:3002
+
+**Root access:** `root@187.124.241.43` — currently only accessible from gresh@marvin (Windows side).
+
+### C3P Role → Account Mapping
+
+| Role                 | Local Account              | Remote Account        | GitHub Account |
+|----------------------|----------------------------|-----------------------|----------------|
+| 1. CODER             | coder@fragola              |                       | C3P-Coder      |
+| 2. REVIEWER          | reviewer@fragola           |                       | wentbackward   |
+| 3. PLATFORM_ENGINEER | platform_engineer@fragola  |                       | C3P-Platform   |
+| 4. SRE               | ci@fragola                 | deploy@srv1520037     |                |
+
+**GitHub Secrets (Repository-level):**
+- `VPS_HOST` — VPS IP address
+- `VPS_SSH_KEY` — SSH private key for `deploy` user
+- `FRED_API_KEY` — FRED API key
+
 ## 5. The CI/CD Pipeline (GitHub Actions)
 The pipeline will execute the scripts located in `/scripts/`. 
 *   **On PR creation:** Run `npm run test:unit`.
