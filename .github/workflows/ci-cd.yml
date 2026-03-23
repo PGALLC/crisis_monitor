@@ -20,9 +20,6 @@ on:
 env:
   # Docker requires repository names to be strictly lowercase
   IMAGE_REPO: ghcr.io/pgallc/crisis_monitor
-  GCP_PROJECT_ID: paulgresham-com
-  GKE_CLUSTER_NAME: crisis-monitor-cluster
-  GKE_CLUSTER_ZONE: us-east1
 
 jobs:
   # ============================================================
@@ -97,21 +94,17 @@ jobs:
     environment: Test
     env:
       IMAGE_TAG: ghcr.io/pgallc/crisis_monitor:${{ github.sha }}
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Authenticate to GCP
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Get GKE Credentials
-        uses: google-github-actions/get-gke-credentials@v2
-        with:
-          cluster_name: ${{ env.GKE_CLUSTER_NAME }}
-          location: ${{ env.GKE_CLUSTER_ZONE }}
-          project_id: ${{ env.GCP_PROJECT_ID }}
+      - name: Write SSH deploy key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
 
       - uses: actions/setup-node@v4
         with:
@@ -139,21 +132,17 @@ jobs:
     environment: Production
     env:
       IMAGE_TAG: ghcr.io/pgallc/crisis_monitor:${{ github.sha }}
+      VPS_HOST: ${{ secrets.VPS_HOST }}
+      FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Authenticate to GCP
-        uses: google-github-actions/auth@v2
-        with:
-          credentials_json: ${{ secrets.GCP_SA_KEY }}
-
-      - name: Get GKE Credentials
-        uses: google-github-actions/get-gke-credentials@v2
-        with:
-          cluster_name: ${{ env.GKE_CLUSTER_NAME }}
-          location: ${{ env.GKE_CLUSTER_ZONE }}
-          project_id: ${{ env.GCP_PROJECT_ID }}
+      - name: Write SSH deploy key
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.VPS_SSH_KEY }}" > ~/.ssh/id_deploy
+          chmod 600 ~/.ssh/id_deploy
 
       - uses: actions/setup-node@v4
         with:
