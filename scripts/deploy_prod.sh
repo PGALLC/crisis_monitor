@@ -1,6 +1,6 @@
 #!/bin/bash
 set -e
-# C3P Stage: Deploy to Production
+# C3P Stage: Deploy to Production (Hostinger VPS via SSH+Docker)
 # Executed strictly by the CI/CD pipeline after SRE approval and Test success
 
 echo "--- C3P Deploy to PROD ---"
@@ -18,26 +18,51 @@ if [ -z "$IMAGE_TAG" ]; then
   exit 1
 fi
 
-echo "Deploying image ${IMAGE_TAG} to Production environment..."
-
-# Apply namespace and deployment manifests using envsubst to inject IMAGE_TAG
-envsubst '${IMAGE_TAG}' < k8s/prod/namespace.yaml | kubectl apply -f -
-envsubst '${IMAGE_TAG}' < k8s/prod/deployment.yaml | kubectl apply -f -
-
-echo "Waiting for rollout to complete..."
-kubectl rollout status deployment/crisis-monitor -n crisis-monitor-prod --timeout=300s
-
-echo "Getting Production LoadBalancer IP..."
-PROD_IP=$(kubectl get service crisis-monitor -n crisis-monitor-prod \
-  -o jsonpath='{.status.loadBalancer.ingress[0].ip}')
-
-if [ -z "$PROD_IP" ]; then
-  echo "Error: Could not retrieve Production LoadBalancer IP. Aborting smoke tests."
+if [ -z "$VPS_HOST" ]; then
+  echo "Error: VPS_HOST environment variable is not set."
   exit 1
 fi
 
-export BASE_URL="http://${PROD_IP}"
+SSH_OPTS="-o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null -i ~/.ssh/id_deploy"
+SSH_CMD="ssh $SSH_OPTS deploy@${VPS_HOST}"
+
+echo "Deploying image ${IMAGE_TAG} to Production environment on ${VPS_HOST}..."
+
+echo "Pulling image on VPS..."
+$SSH_CMD "docker pull ${IMAGE_TAG}"
+
+echo "Stopping existing production container (if any)..."
+$SSH_CMD "docker stop crisis-monitor-prod && docker rm crisis-monitor-prod" || true
+
+echo "Starting new production container..."
+$SSH_CMD "docker run -d \
+  --name crisis-monitor-prod \
+  --restart unless-stopped \
+  -p 3002:3000 \
+  -e NODE_ENV=production \
+  -e FRED_API_KEY=${FRED_API_KEY} \
+  -e GIT_SHA=${GITHUB_SHA} \
+  ${IMAGE_TAG}"
+
+echo "Waiting for container to become healthy..."
+TIMEOUT=60
+ELAPSED=0
+until curl -sf "http://${VPS_HOST}:3002/health" > /dev/null 2>&1; do
+  if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
+    echo "Error: Production container did not become healthy within ${TIMEOUT}s."
+    $SSH_CMD "docker logs crisis-monitor-prod" || true
+    exit 1
+  fi
+  sleep 2
+  ELAPSED=$((ELAPSED + 2))
+  echo "  waiting... (${ELAPSED}s / ${TIMEOUT}s)"
+done
+
+echo "Production container is healthy."
+
+export BASE_URL="http://${VPS_HOST}:3002"
 export EXPECTED_GIT_SHA="${GITHUB_SHA}"
+
 echo "Running Post-Release Smoke Tests against ${BASE_URL} (expecting SHA ${EXPECTED_GIT_SHA})..."
 npm run test:smoke
 
